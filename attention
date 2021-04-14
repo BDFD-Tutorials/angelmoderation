@@ -1,0 +1,43 @@
+//There is something to note before you start using the version 3.0.2 or above versions of dbd.js. You may (or may not) have noticed that some things changed after the Update 3.0.0, right?
+
+
+//And there are some people saying: "My variables aren't working anymore, what can I do to avoid this"? and for those, this is the solution:
+
+//First, you need to make a new file which has to be named 'transfer.js' (without the ' ofc) and create it. After that is done, copy this inside this file:
+
+const dbddb = require('dbd.db')
+const dbdjs = require('dbdjs.db')
+
+const dbd = dbddb('database')
+const col = dbd.collection({ name: 'Variables' })
+const db = new dbdjs.Database({
+  path: "./new-database/",
+  tables: [{ name: "main" }]
+})
+
+db.once('ready', async () => {
+  const all = await col.find({})
+
+  for (const obj of all) {
+    if (obj.variable) {
+      if (obj.varID == '0') await db.set("main", `${obj.variable}`, obj.value)
+      else await db.set("main", `${obj.variable}_${obj.varID}`, obj.value)
+    } else if (obj.guild) {
+      await db.set("main", `invite-tracker_${obj.guild}_${obj.id}`, {
+        inviter: {
+          id: obj.inviter.id,
+          code: obj.inviter.code
+        },
+        real: obj.real,
+        fake: obj.fake
+      })
+    }
+  }
+})
+
+db.connect()
+
+//and save it.
+
+
+//This will transfer the variables which you provided in the index.js / server.js (whatever you called the main) file so the bot (better said you) can actually use them.

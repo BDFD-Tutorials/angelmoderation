@@ -147,7 +147,7 @@ $title[]
 $description[
 Created: March, 17, 2021
 
-Owner: $username[YOUR ID HERE]#$discriminator[YOUR ID HERE]
+Owner: $userTag[$botOwnerID]
 
 Active since: $uptime
 
@@ -249,9 +249,9 @@ name: "unban",
 code: `
 $onlyBotPerms[ban;I need the ban permission]
 $onlyPerms[ban;You need the ban permission]
-$unban[$message;Member was unbanned by $username#$discriminator]
+$unban[$message;Member was unbanned by $userTag[]]
 $title[Member unbanned]
-$description[$username[$message]#$discriminator[$message] was unbanned by $username#$discriminator]
+$description[$userTag[$message] was unbanned by $userTag[]]
 
 `
 })
@@ -259,7 +259,7 @@ $description[$username[$message]#$discriminator[$message] was unbanned by $usern
 bot.command({
 name: "shutdown",
 code: `
-$onlyForIDs[YOUR ID HERE;]
+$onlyForIDs[$botOwnerID;]
 $shutdown`
 })
 
@@ -278,46 +278,44 @@ bot.command({
 $author[$userTag[$getChannelVar[snipe_author;$mentionedChannels[1;yes]]];$userAvatar[$getChannelVar[snipe_author;$mentionedChannels[1;yes]]]]
 $description[$getChannelVar[snipe_msg;$mentionedChannels[1;yes]]]
 $footer[#$channelName[$getChannelVar[snipe_channel;$mentionedChannels[1;yes]]] | $getChannelVar[snipe_date;$mentionedChannels[1;yes]]]
-$onlyIf[$getChannelVar[snipe_msg;$mentionedChannels[1;yes]]!=;Theres nothing to snipe in <#$mentionedChannels[1;yes]>]
+$onlyIf[$getChannelVar[snipe_msg;$mentionedChannels[1;yes]]!=;There's nothing to snipe in <#$mentionedChannels[1;yes]>]
  `
 });
 
 bot.command({
   name: "nuke",
-  code: ` $onlyPerms[managemessages;managechannels;only staff]
- $onlyBotPerms[managechannels;i need manage channels to go any further]
+  code: ` 
  $deleteChannels[$channelID]
 $cloneChannel
+$onlyPerms[managemessages;managechannels;only staff]
+ $onlyBotPerms[managechannels;i need manage channels to go any further]
 `
 });
 
 bot.command({
   name: "kick",
   code: `
-$onlyIf[$mentionedRoles[1]<$highestRole[$authorID];You cant kick someone whos a higher role then you]
-$onlyPerms[kick;{title:Missing Permissions}{description:You need the Ban Permission to execute this Command!}{footer:}{timestamp:ms}{color:RANDOM}]
 $author[$userTag[$authorID] has kicked $userTag[$mentioned[1;no]];$userAvatar[$clientID]]
 $color[RANDOM]
 $title[Kick successfully executed]
 $description[The user $userTag[$mentioned[1]] has been kicked by $userTag[$authorID]
-$onlyIf[$mentionedRoles[1]<$highestRole[$authorID];You cant kick someone whos a higher role then you]
+$onlyIf[$rolePosition[$mentioned[1]]<$highestRole[$authorID];You cant kick someone whos a higher role then you]
 Reason: $username kicked $username[$mentioned[1]] for $noMentionMessage]
 $addTimestamp
 $kick[$mentioned[1];$noMentionMessage]
 $if[$isNumber[$message[1]]==true]
-$argsCheck[>2;{title:Error occured! Arguments are missing!}{description:You have not provided enough arguments for this command! Please use this instead: **$getServerVar[prefix]ban (user/id) (reason)**}{footer:}{timestamp:ms}{color:RANDOM}]
-$onlyPerms[kick;{title:Missing Permissions}{description:You need the Kick Permission to execute this Command!}{footer:}{timestamp:ms}{color:RANDOM}]
 $author[$userTag[$authorID] has kicked $userTag[$message[1]];$userAvatar[$clientID]]
 $color[RANDOM]
 $title[kick executed]
 $description[The user $userTag[$message[1]] has been kicked by $userTag[$authorID]
-$onlyIf[$mentionedRoles[1]<$highestRole[$authorID];You cant kick someone whos a higher role then you]
-Reason: $replaceText[$message;$message[1] ;;1]]
+Reason: $messageSlice[1]]
 $footer[]
 $addTimestamp
-$kick[$message[1];$replaceText[$message;$message[1] ;;1]]
+$kick[$message[1];$messageSlice[1]]
 $endif
-$suppressErrors[please mention someone to kick them]
+$onlyIf[$rolePosition[$highestRole[$authorID]]<$rolePosition[$highestRole[$mentioned[1]]];{title:Missing Permissions}{description:You cannot kick someone who is higher than (or equal to) you in the role hierarchy]
+$argsCheck[>2;{title:Error occured! Arguments are missing!}{description:You have not provided enough arguments for this command! Please use this instead: **$getServerVar[prefix]ban (user/id) (reason)**}{footer:}{timestamp:ms}{color:RANDOM}]
+$onlyPerms[kick;{title:Missing Permissions}{description:You need the Kick Permission to execute this Command!}{footer:}{timestamp:ms}{color:RANDOM}]
 `
 });
 
@@ -344,6 +342,7 @@ bot.command({
  Reason: $noMentionMessage
  $useChannel[$getServerVar[audit]]
  $suppressErrors
+$onlyIf[$rolePosition[$highestRole[$authorID]]<$rolePosition[$highestRole[$mentioned[1]]]; ]
 `
 });
 
@@ -414,9 +413,9 @@ bot.command({
   code: `
 $thumbnail[$userAvatar[$findUser[$message]]]
 $title[User Info]
-$description[[$username[$findUser[$message]]\\]($userAvatar[$findUser[$message];2048;yes])
+$description[[$username[$findUser[$message]]]($userAvatar[$findUser[$message];2048;yes])
 **Name:**
-$username[$findUser[$message]]#$discriminator[$findUser[$message]]
+$userTag[$findUser[$message]]]
 **ID:**
 $mentioned[1;yes]
 **Created at:**
@@ -469,13 +468,13 @@ mutedRole: $roleID[Muted]]
 $giveRole[$mentioned[1];$roleID[Muted]]
  $channelSendMessage[$channelID;Succesfully Muted <@$mentioned[1]>]
  $onlyIf[$mentioned[1]!=$clientID;I can't mute myself!]
- $onlyIf[$mentioned[1]!=$authorID;You can't mute yourself!] $onlyIf[$hasRoles[$mentioned[1];$roleID[Muted]]==false;User is already muted]
-$onlyBotPerms[manageroles;I don't have manage roles permission!]
+ $onlyIf[$mentioned[1]!=$authorID;You can't mute yourself!]
+$onlyIf[$hasRoles[$mentioned[1];$roleID[Muted]]==false;This User is already muted]
 $suppressErrors[Something went wrong...]
- $onlyIf[$roleExists[$findRole[Muted]]==true;I can't find Role "Muted" Please create that role and try again ]
- $onlyIf[$mentioned[1]!=;Please mention someone]
- $onlyBotPerms[manageroles;I need manage roles permissions!] 
- $onlyPerms[managemessages;You need manage messages permission to use this command]`
+ $onlyIf[$roleExists[$findRole[Muted]]==true;I couldn't find Role "Muted" Please create that role and try again ]
+ $onlyIf[$mentioned[1]!=;Please mention someone] 
+ $onlyPerms[managemessages;You need manage messages permission to use this command]
+$onlyBotPerms[manageroles;I don't have the manage roles permission!]`
 });
 
 
@@ -500,8 +499,8 @@ bot.command({
 $title[Success!]
 $description[<@!$mentioned[1]> has been warned for $noMentionMessage]
 $color[#00ffff]
-$setUserVar[warn;$sum[$getServerVar[warn];1]]
-$onlyPerms[managemessages; you need managemessages]
+$setUserVar[warn;$sum[$getUserVar[warn;$mentioned[1]];1];$mentioned[1]]
+$onlyPerms[managemessages;you need the managemessages Permissions]
 `
 });
 
@@ -509,9 +508,9 @@ bot.command({
   name: "warnings",
   code: ` 
 $title[warnings]
-$description[<@!$mentioned[1]> warn count: $getUserVar[warn]]
+$description[<@!$mentioned[1]> warn count: $getUserVar[warn;$mentioned[1]]]
 $color[#00ffff]
-$onlyPerms[managemessages;you need manage messages]
+$onlyPerms[managemessages;you need the manage messages permissions]
 `
 });
 
@@ -519,9 +518,9 @@ bot.command({
   name: "clearwarn",
   code: ` 
 $title[Success!]
-$description[<@!$mentioned[1]> now has $getServerVar[warn] warns]
+$description[<@!$mentioned[1]> now has $getUserVar[warn;$mentioned[1]] warns]
 $color[#00ffff]
-$setUserVar[warn;$sub[$getServerVar[warn];-1]]
+$setUserVar[warn;$sub[$getUserVar[warn;$mentioned[1]];1];$mentioned[1]]
 $onlyPerms[managemessages;you need manage messages]
 `
 });
@@ -546,6 +545,7 @@ $reboot[index.js]
 bot.command({
   name: "shorten",
   code: `
+$jsonRequest[https://api.toxy.ga/api/shorten?url=$message;url]
 $onlyIf[$message == https://grabify.com;The link you put in is dangerous] 
 $onlyIf[$message == https://pornhub.com;The link you put in is NSFW] 
 $onlyIf[$message == https://hentaihaven.xxx;The link you put in is NSFW] 
@@ -554,8 +554,7 @@ $onlyIf[$message == http://pornhub.com;The link you put in is NSFW]
 $onlyIf[$message == http://hentaihaven.xxx;The link you put in is dangerous] 
 $onlyIf[$message == www.grabify.com;The link you put in is dangerous] 
 $onlyIf[$message == www.pornhub.com;The link you put in is NSFW] 
-$onlyIf[$message == www.hentaihaven;The link you put in is NSFW] 
-$jsonRequest[https://api.toxy.ga/api/shorten?url=$message;url]`
+$onlyIf[$message == www.hentaihaven;The link you put in is NSFW]`
 });
 
 bot.command({

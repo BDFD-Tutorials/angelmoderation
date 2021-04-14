@@ -2,9 +2,9 @@
   "name": "-asdf",
   "version": "1.0.0",
   "description": "",
-  "main": "angel.js",
+  "main": "angelmoderationopensource.js",
   "scripts": {
-    "start": "node angel.js"
+    "start": "node angelmoderationopensource.js"
   },
   "engines": {
     "node": "12.x"
